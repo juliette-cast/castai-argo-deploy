@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: castai-onboarding
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  source:
+    repoURL: https://github.com/<your-org>/<your-repo>.git
+    targetRevision: HEAD
+    path: castai/onboarding
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+

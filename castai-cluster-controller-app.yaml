@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: castai-cluster-controller
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://castai.github.io/helm-charts
+    chart: castai-cluster-controller
+    targetRevision: 0.82.5      # or “latest”
+    helm:
+      values: |
+        castai:
+          apiKey:   be2f858ff255e8afafad237c50d36557efe62ca86378504d2dfa681642d09a34
+          apiURL:   https://api.cast.ai
+          clusterID: 071a2ebc-921e-4512-a286-c6eeb0893828
+        autoscaling:
+          enabled: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: castai-agent
+  syncPolicy:
+    automated:
+      prune:    true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
