@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://castai.github.io/helm-charts
     chart: castai-cluster-controller
-    targetRevision: 0.82.5      # or “latest”
+    targetRevision: 0.81.11
     helm:
       values: |
         castai:
