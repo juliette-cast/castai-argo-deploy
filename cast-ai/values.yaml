@@ -1,1 +1,93 @@
-clusterToken: 2793d7538951b4bfd8c6a4e5cff67675283ecfc5de7fbacd3c4a7b25b7aae2df
+# Your CAST AI cluster token - this is typically provided directly to the Helm chart.
+# It often doubles as the apiKey for direct API communication.
+clusterToken: "2793d7538951b4bfd8c6a4e5cff67675283ecfc5de7fbacd3c4a7b25b7aae2df"
+
+# --- Common CAST AI Settings (often under a top-level 'castai:' key) ---
+castai:
+  # API key for communication with CAST AI platform
+  apiKey: "2793d7538951b4bfd8c6a4e5cff67675283ecfc5de7fbacd3c4a7b25b7aae2df" # Your API Token
+
+  # The base URL for the CAST AI API
+  apiURL: "https://api.cast.ai"
+
+  # Your unique CAST AI Cluster ID
+  clusterID: "071a2ebc-921e-4512-a286-c6eeb0893828" # Replace with YOUR_CASTAI_CLUSTER_ID
+
+  # gRPC URL for CAST AI services
+  grpcURL: "grpc.cast.ai:443"
+
+  # Kvisor gRPC URL for security agent communication
+  kvisorGrpcURL: "kvisor.prod-master.cast.ai:443"
+
+  # Your EKS cluster name (used for IAM role creation and tagging)
+  clusterName: "my-cluster" # Replace with YOUR_CLUSTER_NAME
+
+  # Your AWS region where the EKS cluster resides
+  region: "us-east-2" # Replace with YOUR_AWS_REGION
+
+  # The USER_ARN that the CAST AI cross-account role will trust (for sts:AssumeRole)
+  # This is crucial for CAST AI to manage AWS resources like EC2 instances.
+  userArn: "arn:aws:iam::809060229965:user/cast-crossrole-071a2ebc-921e-4512-a286-c6eeb0893828" # Replace with YOUR_USER_ARN_FOR_IAM_ROLE
+
+  # --- Agent Replication (from the script's final kubectl scale command) ---
+  agent:
+    replicaCount: 2 # Ensures the main castai-agent deployment has 2 replicas
+
+  # --- Enable Workload Autoscaler (corresponding to INSTALL_AUTOSCALER=true) ---
+  workloadAutoscaler:
+    enabled: true
+
+  # --- Enable Pod Pinner (corresponding to INSTALL_POD_PINNER=true) ---
+  podPinner:
+    enabled: true
+    # The script sets replicaCount=0 for evictor and pod-pinner initially.
+    # For a running cluster, you likely want active replicas for these.
+    # Check CAST AI's current documentation for recommended replica counts.
+    # replicaCount: 1 # Example, adjust as needed
+
+  # --- Enable Security Agent (Kvisor) (corresponding to INSTALL_SECURITY_AGENT=true) ---
+  kvisor:
+    enabled: true
+    controller:
+      extraArgs:
+        kube-linter-enabled: true
+        image-scan-enabled: true
+        kube-bench-enabled: true
+        kube-bench-cloud-provider: "eks" # Assuming EKS
+    # If INSTALL_NETFLOW_EXPORTER was also true in the script:
+    # agent:
+    #   enabled: true
+    #   extraArgs:
+    #     netflow-enabled: true
+
+  # --- Enable Spot Handler (part of autoscaler cloud components) ---
+  spotHandler:
+    enabled: true
+    provider: "aws" # Confirmed to be AWS
+
+  # --- Enable Evictor (part of autoscaler cloud components) ---
+  evictor:
+    enabled: true
+    # replicaCount: 1 # Example, adjust as needed
+
+  # --- Enable AI Optimizer Proxy (if INSTALL_AI_OPTIMIZER_PROXY=true in script) ---
+  aiOptimizerProxy:
+    enabled: false # Set to `true` if you had this flag in your original script environment variables.
+                   # It was not explicitly set to 'true' in your initial script variables, so defaulting to false here.
+
+  # --- Enable GPU Metrics Exporter (if INSTALL_GPU_METRICS_EXPORTER=true in script) ---
+  # This component's configuration is complex and depends on existing GPU monitoring setup.
+  # If you require GPU autoscaling and metrics, you will need to enable this and
+  # consult CAST AI's documentation for its specific 'gpuMetricsExporter' values.
+  # For now, it's set to false as it wasn't explicitly enabled in your script variables.
+  gpuMetricsExporter:
+    enabled: false
+    # If enabled, you'd configure it based on your GPU setup:
+    # dcgmExporter:
+    #   enabled: true # Let castai-gpu-metrics-exporter deploy its own DCGM Exporter
+    # config:
+    #   CAST_API: "https://api.cast.ai"
+    #   CLUSTER_ID: "YOUR_CASTAI_CLUSTER_ID"
+    # provider: "eks"
+    # You might need to set `dcgmExporter.enabled: false` and provide `config.DCGM_HOST`
+    # or `config.DCGM_LABELS` if you have an existing DCGM exporter.
