@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: castai-onboarding
+  namespace: kube-system
+spec:
+  template:
+    spec:
+      serviceAccountName: admin-sa  # Ensure this has proper permissions
+      containers:
+        - name: onboarding
+          image: amazonlinux:2
+          command: ["/bin/bash", "-c"]
+          env:
+            - name: CLUSTER_NAME
+              value: "my-cluster"
+            - name: REGION
+              value: "us-east-2"
+            - name: USER_ARN
+              value: "arn:aws:iam::809060229965:user/cast-crossrole-071a2ebc-921e-4512-a286-c6eeb0893828"
+            - name: CASTAI_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: castai-secret
+                  key: api-token
+            - name: CASTAI_CLUSTER_ID
+              value: "071a2ebc-921e-4512-a286-c6eeb0893828"
+            - name: INSTALL_AUTOSCALER
+              value: "true"
+            - name: INSTALL_POD_PINNER
+              value: "true"
+            - name: INSTALL_SECURITY_AGENT
+              value: "true"
+          args:
+            - |
+              yum install -y curl unzip jq yq aws-cli kubectl helm
+              curl -fsSL https://api.cast.ai/v1/scripts/eks/onboarding.sh | bash
+      restartPolicy: Never
+  backoffLimit: 0
+
